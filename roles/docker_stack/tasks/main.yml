@@ -1,0 +1,51 @@
+---
+- name: Instalar dependencias para repositorios HTTPS
+  apt:
+    name:
+      - ca-certificates
+      - gnupg
+      - lsb-release
+    state: present
+
+- name: Crear directorio para llaves GPG
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Descargar llave oficial de Docker
+  shell: |
+    # Usamos variables de Ansible para detectar si es debian o ubuntu automáticamente
+    curl -fsSL https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+
+- name: Agregar repositorio estable de Docker
+  shell: |
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/{{ ansible_distribution | lower }} \
+    {{ ansible_distribution_release }} stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+- name: Instalar Docker Engine y Compose Plugin
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+# --- PROTECCIÓN DE ARRANQUE (CAPA 2) ---
+- name: Crear directorio de configuración systemd
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    mode: '0755'
+
+- name: "Aplicar Override: Esperar a los discos"
+  copy:
+    dest: /etc/systemd/system/docker.service.d/override.conf
+    content: |
+      [Unit]
+      RequiresMountsFor={{ docker_required_mounts }}
+    mode: '0644'
+  notify: Reiniciar Docker

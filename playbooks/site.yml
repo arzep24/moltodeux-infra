@@ -1,0 +1,37 @@
+---
+# 1. Configuración del Host Físico (Moltodeux)
+- name: Mantenimiento del Host Proxmox
+  hosts: proxmox
+  become: true
+  roles:
+    - common         # Herramientas base (htop, vim)
+    - proxmox_host   # Arreglo de Repositorios No-Subscription
+
+# 2. Configuración de VMs y LXCs Estándar (La mayoría)
+- name: Configuración General de Servicios
+  hosts: standard_updates
+  become: true
+  roles:
+    - common         # Updates, Timezone, QEMU Agent
+
+# 3. Configuración Especial para NAS (OMV)
+# OMV gestiona sus propios configs, solo tocamos lo mínimo para no romper la UI.
+- name: Configuración Base NAS
+  hosts: storage_nas
+  become: true
+  tasks:
+    - name: Instalar QEMU Agent (Vital para backups en Proxmox)
+      apt:
+        name: qemu-guest-agent
+        state: present
+    - name: Configurar Zona Horaria
+      timezone:
+        name: America/Tijuana
+
+# 4. Configuración de Titan-Hub (Docker + Protección)
+# Aquí aplicamos la "Capa 2" de seguridad: Docker no inicia sin los discos.
+- name: Despliegue Docker Stack
+  hosts: docker_hosts
+  become: true
+  roles:
+    - docker_stack

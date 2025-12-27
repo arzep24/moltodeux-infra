@@ -1,0 +1,38 @@
+---
+- name: Actualizar caché de apt
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+# LÓGICA INTELIGENTE: Solo instalar QEMU Agent si es una VM (KVM)
+- name: Instalar QEMU Guest Agent
+  apt:
+    name: qemu-guest-agent
+    state: present
+  when: ansible_virtualization_type == 'kvm' and ansible_virtualization_role == 'guest'
+
+- name: Iniciar QEMU Agent
+  service:
+    name: qemu-guest-agent
+    state: started
+    enabled: yes
+  when: ansible_virtualization_type == 'kvm' and ansible_virtualization_role == 'guest'
+
+- name: Instalar Utilidades Esenciales
+  apt:
+    name:
+      - curl
+      - wget          # Faltaba: Alternativa a curl
+      - git
+      - htop
+      - vim
+      - net-tools
+      - ncdu          # Vital para ver espacio en disco
+      - unzip         # Faltaba: Para descomprimir zips
+      - dnsutils      # Faltaba: Para debuggear DNS (dig, nslookup)
+      - tree          # Faltaba: Para ver carpetas en árbol
+    state: present
+
+- name: Configurar Zona Horaria
+  timezone:
+    name: America/Tijuana

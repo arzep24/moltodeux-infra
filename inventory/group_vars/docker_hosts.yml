@@ -1,0 +1,2 @@
+# Capa 2 de Seguridad: Docker esperará a que este punto de montaje exista.
+docker_required_mounts: "/media/externo /media/interno"

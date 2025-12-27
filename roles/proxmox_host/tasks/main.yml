@@ -1,0 +1,15 @@
+---
+- name: Quitar repo Enterprise
+  apt_repository:
+    repo: "deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise"
+    state: absent
+    filename: pve-enterprise
+
+- name: Poner repo No-Subscription
+  apt_repository:
+    repo: "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription"
+    state: present
+    filename: pve-no-subscription
+
+- name: Actualizar Proxmox
+  apt: upgrade=dist update_cache=yes
