@@ -1,0 +1,102 @@
+---
+- name: Instalar UFW
+  apt:
+    name: ufw
+    state: present
+
+- name: Resetear reglas previas (Para asegurar limpieza)
+  ufw:
+    state: reset
+  # Solo hacemos esto si queremos empezar de cero, cuidado.
+
+# --- REGLA DE ORO: SIEMPRE PERMITIR SSH ---
+- name: Permitir SSH (Puerto 22) - ¡VITAL!
+  ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+
+# --- REGLAS PARA SERVICIOS WEB (Gitea, Code Server, Monitor) ---
+- name: Permitir Puertos Web Comunes (HTTP/HTTPS)
+  ufw:
+    rule: allow
+    port: '{{ item }}'
+    proto: tcp
+  loop:
+    - '80'
+    - '443'
+  when: "'infra_network' in group_names"
+
+- name: Permitir Interfaz Web de Gitea (3000)
+  ufw:
+    rule: allow
+    port: '3000'
+    proto: tcp
+  when: inventory_hostname == 'gitea-server'
+
+- name: Permitir Code Server (8080)
+  ufw:
+    rule: allow
+    port: '8080'
+    proto: tcp
+  when: inventory_hostname == 'code-server'
+
+- name: Permitir Monitor Uptime Kuma (3001)
+  ufw:
+    rule: allow
+    port: '3001'
+    proto: tcp
+  when: inventory_hostname == 'monitor'
+
+# --- REGLAS PARA DESCARGAS (qBittorrent) ---
+- name: Permitir WebUI qBittorrent (8080 o el que uses)
+  ufw:
+    rule: allow
+    port: '8080'
+    proto: tcp
+  when: inventory_hostname == 'qbitorrent-vpn'
+
+- name: Permitir Tráfico Torrent (TCP/UDP)
+  ufw:
+    rule: allow
+    port: '43563' # Revisa en tu qBittorrent cuál puerto usa para conexiones entrantes
+    proto: any
+  when: inventory_hostname == 'qbitorrent-vpn'
+
+# --- REGLAS PARA JUEGOS ---
+- name: Permitir Minecraft Java (25565)
+  ufw:
+    rule: allow
+    port: '25565'
+    proto: tcp
+  when: "'game_servers' in group_names"
+  
+- name: Permitir Minecraft Bedrock / Geyser (19132 UDP)
+  ufw:
+    rule: allow
+    port: '19132'     # Puerto default de Bedrock
+    proto: udp        # IMPORTANTE: Bedrock usa UDP, no TCP
+  when: "'game_servers' in group_names"
+# --- REGLAS PARA DOCKER HOST (Plex y Apps) ---
+- name: Permitir Plex Media Server
+  ufw:
+    rule: allow
+    port: '32400'
+    proto: tcp
+  when: "'docker_hosts' in group_names"
+
+# --- REGLAS PARA VPN (Tailscale) ---
+# Tailscale suele usar UDP 41641 para conexiones directas (NAT traversal)
+- name: Permitir Tailscale Direct
+  ufw:
+    rule: allow
+    port: '41641'
+    proto: udp
+  when: inventory_hostname == 'tailscale'
+
+# --- ACTIVACIÓN FINAL ---
+- name: Habilitar UFW y denegar resto por defecto
+  ufw:
+    state: enabled
+    policy: deny
+    direction: incoming

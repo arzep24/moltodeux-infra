@@ -13,6 +13,8 @@
   become: true
   roles:
     - common         # Updates, Timezone, QEMU Agent
+    - security       # Firewall Básico
+    - system_maintenance # Actiualizaciones automáticas
 
 # 3. Configuración Especial para NAS (OMV)
 # OMV gestiona sus propios configs, solo tocamos lo mínimo para no romper la UI.
@@ -35,3 +37,4 @@
   become: true
   roles:
     - docker_stack
+

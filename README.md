@@ -1,11 +1,15 @@
 # Moltodeux Infrastructure
-
 Este repositorio contiene el código fuente completo para la gestión del Homelab `Moltodeux`. Implementa una filosofía de **Infraestructura como Código (IaC)** dividida en tres capas lógicas para garantizar un sistema robusto, reproducible y con mantenimiento automatizado.
+
+## Requisitos Previos
+- Control Node: WSL (Windows Subsystem for Linux) o Linux Nativo.
+- Herramientas: ansible, terraform, git, sshpass.
+- Acceso: Llaves SSH públicas distribuidas en todos los nodos.
+- Proxmox API: Token generado para Terraform.
 
 ## 🏛️ Arquitectura del Sistema
 
 El proyecto sigue una estrategia de 3 capas:
-
 | Capa | Tecnología | Función | Estado |
 | :--- | :--- | :--- | :--- |
 | **1. Infraestructura** | **Terraform** | **"El Constructor"**: Define y crea las VMs y Contenedores LXC en Proxmox. | 🟡 *DRP (Plan de Recuperación)* |
@@ -36,6 +40,7 @@ moltodeux-infra/
 │   └── docker_stack/       # Instalación Docker + Systemd Override
 │
 └── stacks/                 # CAPA 3: Definiciones de Docker Compose (Futuro)
+```
 
 ## Capa 1: Infraestructura (Terraform)
 Código para aprovisionar los recursos en el hipervisor Proxmox.
@@ -44,14 +49,11 @@ Ubicación: `./terraform/`
 
 Uso básico:
 ```Bash
-
 cd terraform
 # Inicializar plugins
 terraform init
-
 # Ver qué cambios haría (Plan)
 terraform plan
-
 # Aplicar cambios (Crear/Destruir máquinas)
 terraform apply
 ```
@@ -75,8 +77,3 @@ Los servicios finales corren containerizados, principalmente sobre el nodo titan
 Gestión: Híbrida (Portainer / Docker Compose).
 Protección: Gestionada por el rol docker_stack de Ansible.
 
-🚀 Requisitos Previos
-Control Node: WSL (Windows Subsystem for Linux) o Linux Nativo.
-Herramientas: ansible, terraform, git, sshpass.
-Acceso: Llaves SSH públicas distribuidas en todos los nodos.
-Proxmox API: Token generado para Terraform.

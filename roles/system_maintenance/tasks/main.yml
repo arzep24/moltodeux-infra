@@ -1,0 +1,40 @@
+---
+- name: Instalar paquete de actualizaciones desatendidas
+  apt:
+    name: unattended-upgrades
+    state: present
+
+- name: Habilitar actualizaciones automáticas (20auto-upgrades)
+  copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: '0644'
+
+- name: Configurar reglas (50unattended-upgrades)
+  copy:
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    content: |
+      // Solo instalar actualizaciones de seguridad oficiales
+      Unattended-Upgrade::Allowed-Origins {
+          "${distro_id}:${distro_codename}";
+          "${distro_id}:${distro_codename}-security";
+          "${distro_id}ESMApps:${distro_codename}-apps-security";
+          "${distro_id}ESM:${distro_codename}-infra-security";
+      };
+      
+      // Limpieza automática
+      Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+      Unattended-Upgrade::Remove-Unused-Dependencies "true";
+
+      // Reiniciar automáticamente a las 04:00 AM si es necesario
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+    mode: '0644'
+
+- name: Asegurar que el servicio esté corriendo
+  service:
+    name: unattended-upgrades
+    state: started
+    enabled: yes
