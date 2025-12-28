@@ -41,11 +41,14 @@
     state: directory
     mode: '0755'
 
-- name: "Aplicar Override: Esperar a los discos"
+- name: "Aplicar Override: Esperar a los discos de red"
   copy:
     dest: /etc/systemd/system/docker.service.d/override.conf
     content: |
       [Unit]
+      # Candado de Seguridad: Docker no iniciará hasta que estos montajes existan
       RequiresMountsFor={{ docker_required_mounts }}
     mode: '0644'
   notify: Reiniciar Docker
+  # LÓGICA CLAVE: Solo ejecutar si la variable existe para este host
+  when: docker_required_mounts is defined

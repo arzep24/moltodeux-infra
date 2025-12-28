@@ -30,11 +30,10 @@
       timezone:
         name: America/Tijuana
 
-# 4. Configuración de Titan-Hub (Docker + Protección)
-# Aquí aplicamos la "Capa 2" de seguridad: Docker no inicia sin los discos.
-- name: Despliegue Docker Stack
-  hosts: docker_hosts
+# 4. Configuración de Hosts con Docker (VMs y LXCs específicos)
+- name: Despliegue Docker Stack y Protección
+  # Lista de hosts que recibirán Docker + Protección
+  hosts: docker_hosts, qbitorrent-vpn
   become: true
   roles:
     - docker_stack
-

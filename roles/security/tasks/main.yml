@@ -84,7 +84,6 @@
     port: '32400'
     proto: tcp
   when: "'docker_hosts' in group_names"
-
 # --- REGLAS PARA VPN (Tailscale) ---
 # Tailscale suele usar UDP 41641 para conexiones directas (NAT traversal)
 - name: Permitir Tailscale Direct
@@ -94,6 +93,13 @@
     proto: udp
   when: inventory_hostname == 'tailscale'
 
+# --- REGLA DE CONFIANZA LOCAL ---
+- name: Permitir Tráfico de Red Local (LAN)
+  ufw:
+    rule: allow
+    src: '192.168.1.0/24'
+    proto: any
+  when: "'docker_hosts' in group_names"
 # --- ACTIVACIÓN FINAL ---
 - name: Habilitar UFW y denegar resto por defecto
   ufw:

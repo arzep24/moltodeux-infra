@@ -7,7 +7,7 @@ resource "proxmox_vm_qemu" "titan_hub" {
   clone       = "ubuntu-server-template" # Nombre de la plantilla en Proxmox
   cores       = 4
   sockets     = 1
-  memory      = 8192
+  memory      = 16384
   scsihw      = "virtio-scsi-pci"
   bootdisk    = "scsi0"
   
